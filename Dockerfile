@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM openjdk:21-jdk-bookworm
 
 LABEL org.opencontainers.image.created="2022-11-30"
 LABEL org.opencontainers.image.url="https://github.com/odelaneau/GLIMPSE"
