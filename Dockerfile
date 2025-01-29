@@ -15,6 +15,12 @@ RUN curl -O https://packages.cloud.google.com/apt/doc/apt-key.gpg && \
     apt-get install -y  build-essential gcc wget make autoconf zlib1g-dev libncurses5-dev libncursesw5-dev liblzma-dev libbz2-dev && \
     apt-get install -y unzip git cmake libcurl4-openssl-dev parallel python3-pip libssl-dev zlib1g-dev libdeflate-dev 
 
+ENV HTSLIB_CONFIGURE_OPTIONS="--enable-gcs --enable-libcurl"
+ENV HTSLIB_LIBRARY_DIR=/usr/local/lib
+ENV HTSLIB_INCLUDE_DIR=/usr/local/include
+ENV HTSLIB_SOURCE=/htslib-1.15.1
+
+
 # Download and build boost program_options and iostreams
 RUN wget https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.gz && \
 tar -xf boost_1_78_0.tar.gz && \
@@ -27,17 +33,35 @@ cp boost/lib/libboost_iostreams.a boost/lib/libboost_program_options.a boost/lib
 cp -r boost/include/boost/ /usr/include/ && \
 rm -r boost_1_78_0 boost
 
-# Download and build htslib
+# Download and build htslib, samtools, bcftools, and bwa
 RUN wget https://github.com/samtools/htslib/releases/download/1.17/htslib-1.17.tar.bz2 && \
-tar -xf htslib-1.17.tar.bz2 && \
-rm htslib-1.17.tar.bz2 && \
-cd htslib-1.17 && \
-autoheader && \
-autoconf && \
-./configure --enable-libcurl && \
-make install && \
-cd .. && \
-rm -r htslib-1.17
+    tar xjf htslib-1.17.tar.bz2 && \
+    cd htslib-1.17 && \
+    ./configure --enable-gcs --enable-libcurl && \
+    make && \
+    make install && \
+    cd .. && \
+    wget https://github.com/samtools/samtools/releases/download/1.17/samtools-1.17.tar.bz2 && \
+    tar xjf samtools-1.17.tar.bz2 && \
+    cd samtools-1.17  && \
+    ./configure --enable-gcs --enable-libcurl && \
+    make && \
+    make install && \
+    cd .. && \
+    wget https://github.com/samtools/bcftools/releases/download/1.17/bcftools-1.17.tar.bz2 && \
+    tar xjf bcftools-1.17.tar.bz2 && \
+    cd bcftools-1.17  && \
+    ./configure --enable-gcs --enable-libcurl && \
+    make && \
+    make install && \
+    cd .. && \
+    wget https://github.com/lh3/bwa/archive/refs/tags/v0.7.18.tar.gz && \
+    tar xzf v0.7.18.tar.gz && \
+    cd bwa-0.7.18 && make CC='gcc -fcommon' && \
+    cp bwa /usr/bin/ && \
+    cd .. && \
+    git clone --depth 1 https://github.com/samtools/htslib-plugins.git && \
+    (cd htslib-plugins && make PLUGINS='hfile_cip.so hfile_mmap.so' install)
 
 # Have to copy each subdirectory individually because the COPY command copies the contents, not the directories
 COPY chunk GLIMPSE/chunk/
