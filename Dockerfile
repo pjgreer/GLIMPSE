@@ -64,20 +64,23 @@ RUN wget https://github.com/samtools/htslib/releases/download/1.17/htslib-1.17.t
     (cd htslib-plugins && make PLUGINS='hfile_cip.so hfile_mmap.so' install)
 
 # Have to copy each subdirectory individually because the COPY command copies the contents, not the directories
-COPY chunk GLIMPSE/chunk/
-COPY common GLIMPSE/common/
-COPY concordance GLIMPSE/concordance/
-COPY ligate GLIMPSE/ligate/
-COPY phase GLIMPSE/phase/
-COPY split_reference GLIMPSE/split_reference/
-COPY extract_num_sites_from_reference_chunk GLIMPSE/extract_num_sites_from_reference_chunk/
-COPY versions GLIMPSE/versions/
-COPY makefile GLIMPSE/makefile
+#COPY chunk GLIMPSE/chunk/
+#COPY common GLIMPSE/common/
+#COPY concordance GLIMPSE/concordance/
+#COPY ligate GLIMPSE/ligate/
+#COPY phase GLIMPSE/phase/
+#COPY split_reference GLIMPSE/split_reference/
+#COPY extract_num_sites_from_reference_chunk GLIMPSE/extract_num_sites_from_reference_chunk/
+#COPY versions GLIMPSE/versions/
+#COPY makefile GLIMPSE/makefile
 
 # Download and build GLIMPSE
-RUN cd GLIMPSE && \
-make clean && \
-make COMPILATION_ENV=docker
+RUN git clone https://github.com/pjgreer/GLIMPSE.git && \
+    cd GLIMPSE && \
+    git checkout extract_num_sites_from_reference_chunk && \
+    make clean && \
+    make COMPILATION_ENV=docker
+
 
 RUN mv GLIMPSE/chunk/bin/GLIMPSE2_chunk GLIMPSE/split_reference/bin/GLIMPSE2_split_reference GLIMPSE/phase/bin/GLIMPSE2_phase GLIMPSE/ligate/bin/GLIMPSE2_ligate GLIMPSE/concordance/bin/GLIMPSE2_concordance GLIMPSE/extract_num_sites_from_reference_chunk/bin/GLIMPSE2_extract_num_sites_from_reference_chunk /bin && \
 chmod +x /bin/GLIMPSE2* && \
